@@ -1,4 +1,4 @@
-package main
+package pkg
 
 import (
 	"encoding/csv"
@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func loadTasks(filename string) []*Task {
+func LoadTasks(filename string) []*Task {
 	var f *os.File
 	f, err := os.OpenFile(filename, os.O_RDONLY, 0644)
 	if err != nil {
@@ -44,7 +44,7 @@ func loadTasks(filename string) []*Task {
 }
 
 // TODO: Save to new file / backup old file, if error occurs restore old file
-func saveTasks(filename string, tasks []*Task) {
+func SaveTasks(filename string, tasks []*Task) {
 	f, err := os.OpenFile(filename, os.O_RDWR, 0644)
 	if err != nil {
 		log.Fatalf("[save] error opening file %s: %v", filename, err)

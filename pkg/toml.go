@@ -1,4 +1,4 @@
-package main
+package pkg
 
 import (
 	"fmt"
@@ -29,7 +29,7 @@ func DefaultTomlConfig() TomlDocument {
 	}
 }
 
-func loadTomlConfig() TomlDocument {
+func LoadTomlConfig() TomlDocument {
 	var tomlDoc TomlDocument
 	_, err := toml.DecodeFile(TOML_CONFIG_NAME, &tomlDoc)
 

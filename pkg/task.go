@@ -1,4 +1,4 @@
-package main
+package pkg
 
 import (
 	"fmt"
@@ -9,6 +9,7 @@ import (
 const (
 	DateTimeFormat = "2006-01-02 15:04:05"
 	TimeFormat     = "15:04"
+	DateFormat     = "2006-01-02"
 )
 
 type Task struct {
@@ -28,7 +29,7 @@ func NewTask(project, language string) *Task {
 
 func (t Task) Fields() []string {
 	return []string{t.Project, t.Language, t.Start.Format("2006-01-02 15:04:05"),
-		formatTimeOrTBD(t.End, DateTimeFormat)}
+		FormatTimeOrTBD(t.End, DateTimeFormat)}
 }
 
 func (t Task) String() string {
@@ -37,11 +38,11 @@ func (t Task) String() string {
 		t.Project,
 		t.Language,
 		t.Start.Format("2006-01-02 15:04:05"),
-		formatTimeOrTBD(t.End, DateTimeFormat),
+		FormatTimeOrTBD(t.End, DateTimeFormat),
 	)
 }
 
-func formatTimeOrTBD(t time.Time, format string) string {
+func FormatTimeOrTBD(t time.Time, format string) string {
 	if t.IsZero() {
 		return "TBD"
 	}
@@ -86,17 +87,26 @@ func (t *Task) Finish() {
 	t.End = time.Now()
 }
 
-func getTodayTasks(tasks []*Task) []*Task {
+func GetTodayTasks(tasks []*Task) []*Task {
 	todayTasks := []*Task{}
 	for _, task := range tasks {
-		if today(task.Start) {
+		if Today(task.Start) {
 			todayTasks = append(todayTasks, task)
 		}
 	}
 	return todayTasks
 }
 
-func today(date time.Time) bool {
+func (t Task) Duration() time.Duration {
+	endtime := t.End
+	if t.End.IsZero() {
+		endtime = time.Now()
+	}
+
+	return endtime.Sub(t.Start)
+}
+
+func Today(date time.Time) bool {
 	nYear, nMonth, nDay := time.Now().Date()
 	year, month, day := date.Date()
 	return nYear == year && nMonth == month && nDay == day
