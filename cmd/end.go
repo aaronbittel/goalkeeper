@@ -13,7 +13,8 @@ var endCmd = &cobra.Command{
 	Short: "Ends a running task.",
 	Long: `Sets the end time for the currently running task and ends it.
 	Now you can begin a new task with "start"`,
-	Run: runEnd,
+	Run:     runEnd,
+	Aliases: []string{"stop"},
 }
 
 func runEnd(cmd *cobra.Command, args []string) {

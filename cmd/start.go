@@ -19,7 +19,7 @@ var startCmd = &cobra.Command{
 	Long: `This starts a new task with for the given "Project" and "Language.
 	The start time is set to now and the end time is TBD.
 	Finish a task using the "end" command."`,
-	Aliases: []string{"proj"},
+	Aliases: []string{"begin"},
 	Run:     runStart,
 }
 
