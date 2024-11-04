@@ -146,9 +146,16 @@ func summaryProjects(ascending bool) {
 		})
 	}
 
+	tab := table.NewTable(
+		table.NewHeader("Projects").HeadingCentered(),
+		table.NewHeader("Duration", true),
+	).WithRoundedCorners()
+
 	for _, name := range projectNames {
-		fmt.Printf("%s: %s\n", name, formatDuration(projectTasks[name]))
+		tab.AddRow([]string{name, formatDuration(projectTasks[name])})
 	}
+
+	fmt.Println(tab)
 }
 
 func summaryLanguages(ascending bool) {
@@ -172,7 +179,14 @@ func summaryLanguages(ascending bool) {
 		})
 	}
 
+	tab := table.NewTable(
+		table.NewHeader("Languages", true),
+		table.NewHeader("Duration", true),
+	).WithRoundedCorners()
+
 	for _, name := range languageNames {
-		fmt.Printf("%s: %s\n", name, formatDuration(languageTasks[name]))
+		tab.AddRow([]string{name, formatDuration(languageTasks[name])})
 	}
+
+	fmt.Println(tab)
 }

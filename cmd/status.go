@@ -2,11 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"log"
-	"os"
-	"text/tabwriter"
 	"time"
 
+	table "github.com/aaronbittel/goalkeeper/internal"
 	"github.com/aaronbittel/goalkeeper/pkg"
 	"github.com/spf13/cobra"
 )
@@ -21,52 +19,39 @@ var statusCmd = &cobra.Command{
 }
 
 func runStatus(cmd *cobra.Command, args []string) {
-	var (
-		todayTasks  = pkg.GetTodayTasks(tasks)
-		amountToday time.Duration
-		amount      time.Duration
+	tab := table.NewTable(
+		table.NewHeader("Project").HeadingCentered(),
+		table.NewHeader("Language", true),
+		table.NewHeader("Start", true),
+		table.NewHeader("End", true),
+		table.NewHeader("Duration", true),
+	).WithRoundedCorners().WithTitle(time.Now().Format("Mon Jan 02"))
 
-		w = new(tabwriter.Writer)
-	)
+	var totalDuration time.Duration
 
-	w.Init(os.Stdout, 0, 8, 1, '\t', 0)
-	_, err := fmt.Fprintf(w, "Project\tLanguage\tStart\tEnd\tDuration\n")
-	if err != nil {
-		log.Fatalf("error writing to tabwriter: %v", err)
-	}
-
+	todayTasks := pkg.GetTodayTasks(tasks)
 	for _, t := range todayTasks {
-		amount = t.Duration()
-		amountToday += amount
-
-		_, err := fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n",
-			t.Project, t.Language,
-			pkg.FormatTimeOrTBD(t.Start, pkg.TimeFormat),
-			pkg.FormatTimeOrTBD(t.End, pkg.TimeFormat),
-			formatDuration(amount))
-		if err != nil {
-			log.Fatalf("error writing to tabwriter: %v", err)
-		}
+		tab.AddRow([]string{
+			t.Project, t.Language, t.Start.Format(pkg.TimeFormat),
+			pkg.FormatTimeOrTBD(t.End, pkg.TimeFormat), formatDuration(t.Duration()),
+		})
+		totalDuration += t.Duration()
 	}
+	tab.AddSeperator()
 
 	percentage := ""
 	goalMinutes := tomlConfig.ConfigSection.GoalMinutes
 	if goalMinutes != 0 {
-		perc := amountToday.Minutes() / float64(goalMinutes)
-		percentage = fmt.Sprintf(" (%2.2f %%)", perc*100)
+		perc := totalDuration.Minutes() / float64(goalMinutes)
+		percentage = fmt.Sprintf(" (%d%%)", int(perc*100))
 	}
 
-	_, err = fmt.Fprintf(w, "\t\t\t\t%s\n",
-		fmt.Sprintf("%s%s", formatDuration(amountToday), percentage),
-	)
-	if err != nil {
-		log.Fatalf("error writing to tabwriter: %v", err)
-	}
+	tab.AddRow([]string{"", "", "", "", fmt.Sprintf(
+		"%s%s",
+		formatDuration(totalDuration),
+		percentage)})
 
-	err = w.Flush()
-	if err != nil {
-		log.Fatalf("error flushing tabwriter: %v", err)
-	}
+	fmt.Println(tab)
 }
 
 func init() {
