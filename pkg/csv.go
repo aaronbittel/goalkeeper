@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 func LoadTasks(filename string) []*Task {
-	var f *os.File
-	f, err := os.OpenFile(filename, os.O_RDONLY, 0644)
+	path := filepath.Join(DefaultPath(), filename)
+	f, err := os.OpenFile(path, os.O_RDONLY, 0644)
 	if err != nil {
 		if os.IsNotExist(err) {
 			f, err = os.Create(filename)
@@ -45,7 +46,8 @@ func LoadTasks(filename string) []*Task {
 
 // TODO: Save to new file / backup old file, if error occurs restore old file
 func SaveTasks(filename string, tasks []*Task) {
-	f, err := os.OpenFile(filename, os.O_RDWR, 0644)
+	path := filepath.Join(DefaultPath(), filename)
+	f, err := os.OpenFile(path, os.O_RDWR, 0644)
 	if err != nil {
 		log.Fatalf("[save] error opening file %s: %v", filename, err)
 	}

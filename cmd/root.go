@@ -11,19 +11,15 @@ var (
 	tomlConfig  pkg.TomlDocument
 	csvFilename string
 	tasks       []*pkg.Task
-	lastTask    *pkg.Task = nil
+	lastTask    *pkg.Task
 )
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "cli",
+	Use:   "goalkeeper",
 	Short: "A Cli tool for keeping track of progress.",
 	Long: `To keep track for your programming journey progress.
 	Set a goal and keep track your time spent on projects and programming languages.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) {
-	// },
 }
 
 func Execute() {

@@ -40,7 +40,7 @@ func runStatus(cmd *cobra.Command, args []string) {
 	tab.AddSeperator()
 
 	percentage := ""
-	goalMinutes := tomlConfig.ConfigSection.GoalMinutes
+	goalMinutes := tomlConfig.GoalsSection.Daily
 	if goalMinutes != 0 {
 		perc := totalDuration.Minutes() / float64(goalMinutes)
 		percentage = fmt.Sprintf(" (%d%%)", int(perc*100))
