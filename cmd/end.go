@@ -26,6 +26,8 @@ func runEnd(cmd *cobra.Command, args []string) {
 	lastTask := tasks[len(tasks)-1]
 	lastTask.Finish()
 	pkg.SaveTasks(csvFilename, tasks)
+
+	runStatus(nil, nil)
 }
 
 func init() {

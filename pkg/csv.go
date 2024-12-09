@@ -8,28 +8,25 @@ import (
 	"path/filepath"
 )
 
-func LoadTasks(filename string) []*Task {
+func LoadTasks(filename string) ([]*Task, error) {
 	path := filepath.Join(DefaultPath(), filename)
 	f, err := os.OpenFile(path, os.O_RDONLY, 0644)
 	if err != nil {
 		if os.IsNotExist(err) {
-			f, err = os.Create(filename)
-			if err != nil {
-				log.Fatalf("error creating csv file: %v", err)
-			}
-		} else {
-			log.Fatalf("[load] error opening file %s: %v", filename, err)
+			return nil, err
 		}
+		log.Fatalf("[load] error opening file %s: %v", filename, err)
 	}
 	defer f.Close()
 
 	records, err := csv.NewReader(f).ReadAll()
 	if err != nil {
-		log.Fatalf("error reading csv: %v", err)
+		// log.Fatalf("error reading csv: %v", err)
+		return nil, err
 	}
 
 	if len(records) == 0 {
-		return []*Task{}
+		return []*Task{}, nil
 	}
 
 	// Dismiss column names
@@ -41,7 +38,7 @@ func LoadTasks(filename string) []*Task {
 		tasks = append(tasks, FromFields(record))
 	}
 
-	return tasks
+	return tasks, nil
 }
 
 // TODO: Save to new file / backup old file, if error occurs restore old file

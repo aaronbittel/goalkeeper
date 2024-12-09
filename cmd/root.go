@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/aaronbittel/goalkeeper/pkg"
 	"github.com/spf13/cobra"
@@ -20,6 +22,7 @@ var rootCmd = &cobra.Command{
 	Short: "A Cli tool for keeping track of progress.",
 	Long: `To keep track for your programming journey progress.
 	Set a goal and keep track your time spent on projects and programming languages.`,
+	PersistentPreRun: rootPreRun,
 }
 
 func Execute() {
@@ -29,20 +32,34 @@ func Execute() {
 	}
 }
 
-func init() {
-	tomlConfig = pkg.LoadTomlConfig()
+func rootPreRun(cmd *cobra.Command, args []string) {
+	tomlConfig, err := pkg.LoadTomlConfig()
+
+	if err != nil {
+		if !os.IsNotExist(err) {
+			log.Fatalf("could not parse config.toml: %v", err)
+		}
+
+		// config file does not exist -> create config file
+		pkg.CreateProjectDir(pkg.DefaultPath())
+		err := pkg.CreateTomlFile(pkg.DefaultTomlConfig())
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	csvFilename = tomlConfig.ConfigSection.Filename
-	tasks = pkg.LoadTasks(csvFilename)
+
+	tasks, err = pkg.LoadTasks(csvFilename)
+	if err != nil {
+		path := filepath.Join(pkg.DefaultPath() + csvFilename)
+		_, err = os.Create(path)
+		if err != nil {
+			log.Fatalf("error creating csv file: %v", err)
+		}
+	}
 
 	if len(tasks) > 0 {
 		lastTask = tasks[len(tasks)-1]
 	}
-
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// TODO: Do this
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cli.yaml)")
 }

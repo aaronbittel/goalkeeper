@@ -16,6 +16,7 @@ func init() {
 const (
 	DEFAULT_CONFIG_NAME = "config.toml"
 	DEFAULT_CSV_NAME    = "my-tasks.csv"
+	DEFAULT_PATH        = ".goalkeeper"
 )
 
 type ConfigSection struct {
@@ -39,39 +40,31 @@ func DefaultTomlConfig() TomlDocument {
 	}
 }
 
-func LoadTomlConfig() TomlDocument {
+func LoadTomlConfig() (TomlDocument, error) {
 	var tomlDoc TomlDocument
 	path := filepath.Join(DefaultPath(), DEFAULT_CONFIG_NAME)
 	_, err := toml.DecodeFile(path, &tomlDoc)
-
 	if err != nil {
-		if !os.IsNotExist(err) {
-			log.Fatalf("could not parse config.toml: %v", err)
+		if os.IsNotExist(err) {
+			return TomlDocument{}, err
 		}
-
-		// config file does not exist -> create config file
-		createProjectDir()
-		tomlDoc := DefaultTomlConfig()
-		err := createTomlFile(tomlDoc)
-		if err != nil {
-			log.Fatal(err)
-		}
+		log.Fatalf("could not parse config.toml: %v", err)
 	}
 
-	return tomlDoc
+	return tomlDoc, nil
 }
 
-func createProjectDir() {
-	err := os.Mkdir(DefaultPath(), 0744)
+func CreateProjectDir(path string) error {
+	err := os.Mkdir(path, 0744)
 	if err != nil {
 		if os.IsExist(err) {
 			log.Fatal("This should never happen. This Method should only be called if the project irectory does not exist yet and needs to be created!")
 		}
-		log.Fatal(err)
 	}
+	return err
 }
 
-func createTomlFile(config TomlDocument) error {
+func CreateTomlFile(config TomlDocument) error {
 	path := filepath.Join(DefaultPath(), DEFAULT_CONFIG_NAME)
 	f, err := os.Create(path)
 	if err != nil {
@@ -94,5 +87,5 @@ func DefaultPath() string {
 		log.Fatal(err)
 	}
 
-	return filepath.Join(home, ".goalkeeper/")
+	return filepath.Join(home, DEFAULT_PATH)
 }
