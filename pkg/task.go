@@ -87,10 +87,10 @@ func (t *Task) Finish() {
 	t.End = time.Now()
 }
 
-func GetTodayTasks(tasks []*Task) []*Task {
+func GetTasksForDate(tasks []*Task, t time.Time) []*Task {
 	todayTasks := []*Task{}
 	for _, task := range tasks {
-		if Today(task.Start) {
+		if SameDay(t, task.Start) {
 			todayTasks = append(todayTasks, task)
 		}
 	}
@@ -106,8 +106,8 @@ func (t Task) Duration() time.Duration {
 	return endtime.Sub(t.Start)
 }
 
-func Today(date time.Time) bool {
-	nYear, nMonth, nDay := time.Now().Date()
-	year, month, day := date.Date()
+func SameDay(ref, t time.Time) bool {
+	nYear, nMonth, nDay := ref.Date()
+	year, month, day := t.Date()
 	return nYear == year && nMonth == month && nDay == day
 }

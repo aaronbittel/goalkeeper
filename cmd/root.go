@@ -10,10 +10,9 @@ import (
 )
 
 var (
-	tomlConfig  pkg.TomlDocument
-	csvFilename string
-	tasks       []*pkg.Task
-	lastTask    *pkg.Task
+	tomlConfig pkg.TomlDocument
+	tasks      []*pkg.Task
+	lastTask   *pkg.Task
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -33,7 +32,8 @@ func Execute() {
 }
 
 func rootPreRun(cmd *cobra.Command, args []string) {
-	tomlConfig, err := pkg.LoadTomlConfig()
+	var err error
+	tomlConfig, err = pkg.LoadTomlConfig()
 
 	if err != nil {
 		if !os.IsNotExist(err) {
@@ -48,7 +48,7 @@ func rootPreRun(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	csvFilename = tomlConfig.ConfigSection.Filename
+	csvFilename := tomlConfig.ConfigSection.Filename
 
 	tasks, err = pkg.LoadTasks(csvFilename)
 	if err != nil {

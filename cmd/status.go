@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"time"
 
 	table "github.com/aaronbittel/goalkeeper/internal"
@@ -18,19 +20,71 @@ var statusCmd = &cobra.Command{
 	Run: runStatus,
 }
 
+func init() {
+	rootCmd.AddCommand(statusCmd)
+	statusCmd.Flags().StringP("date", "d", "", "Retrieve the status of a specific day in the past")
+	statusCmd.Flags().BoolP("yesterday", "y", false, "Retrieve yesterday's status")
+	statusCmd.Flags().BoolP("percentage", "p", false, "Show the progress in percentage")
+}
+
 func runStatus(cmd *cobra.Command, args []string) {
+	dateStr, err := cmd.Flags().GetString("date")
+	if err != nil {
+		log.Fatalf("[status] error getting date value: %v", err)
+	}
+
+	isYesterday, err := cmd.Flags().GetBool("yesterday")
+	if err != nil {
+		log.Fatalf("[status] error getting yesterday value: %v", err)
+	}
+
+	date := time.Now()
+	if isYesterday {
+		date = date.AddDate(0, 0, -1)
+	}
+
+	if !isYesterday && dateStr != "" {
+		date, err = time.Parse("2.1.2006", dateStr)
+		if err != nil {
+			fmt.Fprintf(os.Stderr,
+				"could not parse date: %s, please use format 'DD.MM.YYYY'\n",
+				dateStr)
+		}
+
+		if date.After(time.Now()) {
+			fmt.Fprintf(os.Stderr,
+				"Time travel hasn't been invented yet\n%s is in the future\n",
+				date.Format("2.1.2006"))
+			return
+		}
+	}
+
+	showPercentage, err := cmd.Flags().GetBool("percentage")
+	if err != nil {
+		log.Fatalf("[status] error getting percentage value: %v", err)
+	}
+
+	tasks := pkg.GetTasksForDate(tasks, date)
+	if len(tasks) == 0 {
+		fmt.Fprintf(os.Stderr, "There are no tasks for that day")
+		return
+	}
+
+	printTasks(tasks, date, showPercentage)
+}
+
+func printTasks(tasks []*pkg.Task, date time.Time, showPercentage bool) {
+	var totalDuration time.Duration
+
 	tab := table.NewTable(
 		table.NewHeader("Project").HeadingCentered(),
 		table.NewHeader("Language", true),
 		table.NewHeader("Start", true),
 		table.NewHeader("End", true),
 		table.NewHeader("Duration", true),
-	).WithRoundedCorners().WithTitle(time.Now().Format("Mon Jan 02"))
+	).WithRoundedCorners().WithTitle(date.Format("Mon Jan 02 '06"))
 
-	var totalDuration time.Duration
-
-	todayTasks := pkg.GetTodayTasks(tasks)
-	for _, t := range todayTasks {
+	for _, t := range tasks {
 		tab.AddRow([]string{
 			t.Project, t.Language, t.Start.Format(pkg.TimeFormat),
 			pkg.FormatTimeOrTBD(t.End, pkg.TimeFormat), formatDuration(t.Duration()),
@@ -41,7 +95,7 @@ func runStatus(cmd *cobra.Command, args []string) {
 
 	percentage := ""
 	goalMinutes := tomlConfig.GoalsSection.Daily
-	if goalMinutes != 0 {
+	if showPercentage && goalMinutes != 0 {
 		perc := totalDuration.Minutes() / float64(goalMinutes)
 		percentage = fmt.Sprintf(" (%d%%)", int(perc*100))
 	}
@@ -52,10 +106,6 @@ func runStatus(cmd *cobra.Command, args []string) {
 		percentage)})
 
 	fmt.Println(tab)
-}
-
-func init() {
-	rootCmd.AddCommand(statusCmd)
 }
 
 func formatDuration(dur time.Duration) string {

@@ -36,7 +36,7 @@ func runStart(cmd *cobra.Command, args []string) {
 
 	task := pkg.NewTask(project, language)
 	tasks = append(tasks, task)
-	pkg.SaveTasks(csvFilename, tasks)
+	pkg.SaveTasks(tomlConfig.ConfigSection.Filename, tasks)
 
 	log.Printf(
 		"Successfully saved task %s (%s), started at: %s\n",
