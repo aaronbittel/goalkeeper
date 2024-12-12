@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/aaronbittel/goalkeeper/pkg"
 	"github.com/spf13/cobra"
@@ -27,7 +28,8 @@ func runEnd(cmd *cobra.Command, args []string) {
 	lastTask.Finish()
 	pkg.SaveTasks(tomlConfig.ConfigSection.Filename, tasks)
 
-	runStatus(nil, nil)
+	tasksToday := pkg.GetTasksForDate(tasks, time.Now())
+	printTasks(tasksToday, time.Now(), false)
 }
 
 func init() {
